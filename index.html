@@ -96,18 +96,12 @@
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
         <div class="column">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/teaser.mp4" type="video/mp4">
-            </video>
-        </div>
-      <div class="column is-full-width">
-        <div class="column">
-          <img src="static/images/teaser.jpg" alt="teaser" style="width:100%">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 180px;">
+          <img src="static/images/teaser_v2.jpg" alt="teaser" style="width:100%">
+          <!-- <div style="display: flex; align-items: center; justify-content: center; gap: 180px;">
             <p>Input</p>
             <p>Generated multiview image and normal maps</p>
             <p>Mesh</p>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -119,7 +113,8 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-           todo
+            Despite recent advancements in the Large Reconstruction Model (LRM) demonstrating impressive results, when extending its input from single image to multiple images, it exhibits inefficiencies, subpar geometric and texture quality, as well as slower convergence speed than expected.  
+            It is attributed to that, LRM formulates 3D reconstruction as a naive images-to-3D translation problem, ignoring the strong 3D coherence among the input images.  In this paper, we propose a Multi-view Large Reconstruction Model (M-LRM) designed to efficiently reconstruct high-quality 3D shapes from multi-views in a 3D-aware manner. Specifically, we introduce a multi-view consistent cross-attention scheme to enable M-LRM to accurately query information from the input images. Moreover, we employ the 3D priors of the input multi-view images to initialize the tri-plane tokens. Compared to LRM, the proposed M-LRM can produce a tri-plane NeRF with 128 * 128 resolution and generate 3D shapes of high fidelity. Experimental studies demonstrate that our model achieves a significant performance gain and faster training convergence than LRM.
           </p><br>
         </div>
       </div>
@@ -134,9 +129,9 @@
         </div>
       </div>
     </div>
-    <p><b>Pipeline.</b> todo.</p>
+    <p><b>Pipeline.</b> Overview of M-LRM. M-LRM is a fully differentiable transformer-based framework, featuring a feature encoder, geometry-aware position encoding and a multi-view cross attention block. Given multi-view images with corresponding camera poses, M-LRM incorporates the 2D and 3D features to efficiently conduct 3D-aware multi-view attention. The proposed geometry-aware position encoding allows more detailed and realistic 3D generation..</p>
   </div>
-  <div class="container is-max-desktop" style="margin-top: 2rem; margin-bottom: 2rem;">
+  <!-- <div class="container is-max-desktop" style="margin-top: 2rem; margin-bottom: 2rem;">
   <div class="columns is-centered has-text-centered">
     <div class="columns is-1 is-multiline is-mobile">
       <div class="column pt-0 mt-0 pb-0 mb-0 is-vcentered is-full">
@@ -174,105 +169,11 @@
     row of the images across different views <b>(e)</b>, which eliminates the need to resample epipolar line
     to compute epipolar attention. We assume the latent feature map has a resolution of <i>H &times; W</i> and
     <i>H = W = S</i>. In such a <i>N</i>-view camera system, row-wise attention reduces the computational
-    complexity to O(<i>N<sup>2</sup>S<sup>3</sup></i>).
+    complexity to O(<i>N<sup>2</sup>S<sup>3</sup></i>). -->
 
   </section>
 
-  <section class="section">
-    <!-- results -->
-    <div class="container is-max-desktop">
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-full-width">
-          <div class="column">
-            <h2 class="title is-5">GSO dataset
-            </h2>
-          </div>
-          <div class="columns is-1 is-multiline is-mobile">
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_grandfather_color.mp4" type="video/mp4">
-              </video>
-            </div>
 
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_alarm_color.mp4" type="video/mp4">
-              </video>
-          </div>
-
-          <div class="column pb-0 mb-0 is-half">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/refine_backpack_color.mp4" type="video/mp4">
-            </video>
-          </div>
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_shoe1_color.mp4" type="video/mp4">
-              </video>
-            </div>
-
-          <div class="column pb-0 mb-0 is-half">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/refine_school_bus1_color.mp4" type="video/mp4">
-            </video>
-          </div>
-
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_toaster_color.mp4" type="video/mp4">
-              </video>
-            </div>
-
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_lunch_bag_color.mp4" type="video/mp4">
-              </video>
-          </div>
-
-          <div class="column pb-0 mb-0 is-half">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/refine_elephant_color.mp4" type="video/mp4">
-            </video>
-          </div>
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_train_color.mp4" type="video/mp4">
-              </video>
-            </div>
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_school_bus2_color.mp4" type="video/mp4">
-              </video>
-          </div>
-
-          <div class="column pb-0 mb-0 is-half">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/refine_teapot_color.mp4" type="video/mp4">
-            </video>
-          </div>
-
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_turtle_color.mp4" type="video/mp4">
-              </video>
-            </div>
-
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_mario_color.mp4" type="video/mp4">
-              </video>
-          </div>
-
-          <div class="column pb-0 mb-0 is-half">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/refine_lion_color.mp4" type="video/mp4">
-            </video>
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>
-    </section>
 
     <section class="section">
       <!-- results -->
@@ -280,7 +181,7 @@
         <div class="columns is-centered has-text-centered">
           <div class="column is-full-width">
             <div class="column">
-              <h2 class="title is-5">Text to 3D
+              <h2 class="title is-5">Sparse-view Reconstruction
               </h2>
             </div>
             
@@ -288,79 +189,60 @@
             <div class="column pb-0 mb-0 is-full-width">
               <div class="video-container">
                 <video id="teaser" autoplay muted loop playsinline height="100%">
-                  <source src="static/videos/refine_A_bulldog_with_a_black_pirate_hat_no_bg.mp4" type="video/mp4">
+                  <source src="static/mv_full/4d22f24ee55b4adbac91b2a66a2d72eb_final.mp4" type="video/mp4">
                 </video>
               </div>
-              <p class="caption has-text-centered is-size-8">A bulldog with a black pirate hat.</p>
+            </div>
+
+            <div class="column pb-0 mb-0 is-full-width">
+              <div class="video-container">
+                <video id="teaser" autoplay muted loop playsinline height="100%">
+                  <source src="static/mv_full/10e8793d49294dbf958872a6f104c240_final.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+
+            <div class="column pb-0 mb-0 is-full-width">
+              <div class="video-container">
+                <video id="teaser" autoplay muted loop playsinline height="100%">
+                  <source src="static/mv_full/c4b840906b054f589f9f3b79b4d2401d_final.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+
+            <div class="column pb-0 mb-0 is-full-width">
+              <div class="video-container">
+                <video id="teaser" autoplay muted loop playsinline height="100%">
+                  <source src="static/mv_full/c4c8eb2f231447009230db56835f76a7_final.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+
+            <div class="column pb-0 mb-0 is-full-width">
+              <div class="video-container">
+                <video id="teaser" autoplay muted loop playsinline height="100%">
+                  <source src="static/mv_full/c4c1772e9138472697f948bd520b2114_final.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+
+            <div class="column pb-0 mb-0 is-full-width">
+              <div class="video-container">
+                <video id="teaser" autoplay muted loop playsinline height="100%">
+                  <source src="static/mv_full/ebddb922a7894f7f9a03ac01815e3b2e_final.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+
+            <div class="column pb-0 mb-0 is-full-width">
+              <div class="video-container">
+                <video id="teaser" autoplay muted loop playsinline height="100%">
+                  <source src="static/mv_gallery.mp4" type="video/mp4">
+                </video>
+              </div>
             </div>
        
-            <br>
-            <div class="columns is-1 is-multiline is-mobile">
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%">
-                  <source src="static/videos/refine_A_pig_wearing_a_backpack_no_bg.mp4" type="video/mp4">
-                </video>
-                <p class="caption has-text-centered mt-3 is-size-8">A pig wearing a backpack.</p>
-            </div>
-  
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_A_beautiful_cyborg_with_brown_hair_no_bg.mp4" type="video/mp4">
-              </video>
-              <p class="caption has-text-centered mt-3 is-size-8">A beautiful cyborg with brown hair.</p>
-            </div>
-      
-
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_Ghost_eating_burger_no_bg.mp4" type="video/mp4">
-                </video>
-                <p class="caption has-text-centered mt-3 is-size-8">Ghost eating burger.</p>
-
-              </div>
-  
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_lewd_statue_of_an_angel_texting_on_a_cell_phone_no_bg.mp4" type="video/mp4">
-                </video>
-                <p class="caption has-text-centered mt-3 is-size-8">Lewd statue of an angel texting on a cell phone.</p>
-
-            </div>
-  
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_kind_cartoon_lion_in_costume_of_astronaut_no_bg.mp4" type="video/mp4">
-              </video>
-              <p class="caption has-text-centered mt-3 is-size-8">Kind cartoon lion in costume of astronaut.</p>
-            </div>
-   
-      
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_cute_demon_combination_angel_figure_no_bg.mp4" type="video/mp4">
-                </video>
-              <p class="caption has-text-centered mt-3 is-size-8">Cute demon combination angel figure.</p>
-              </div>
-  
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_dinosaur_playing_electric_guitar_no_bg.mp4" type="video/mp4">
-                </video>
-              <p class="caption has-text-centered mt-3 is-size-8">Dinosaur playing electric guitar.</p>
-            </div>
-  
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_classic_musketeer_hat_no_bg.mp4" type="video/mp4">
-              </video>
-              <p class="caption has-text-centered mt-3 is-size-8">Classic musketeer hat.</p>
-            </div>
-          </div>
           
-          </div>
-        </div>
-      </div>
-      </section>
 
       <section class="section">
         <!-- results -->
@@ -368,92 +250,135 @@
           <div class="columns is-centered has-text-centered">
             <div class="column is-full-width">
               <div class="column">
-                <h2 class="title is-5">Image to 3D
+                <h2 class="title is-5">Single-image to 3D
                 </h2>
               </div>
-    
-              <div class="columns is-1 is-multiline is-mobile">
-                <div class="column pb-0 mb-0 is-half">
-                  <video id="teaser" autoplay muted loop playsinline height="100%" >
-                    <source src="static/videos/refine_cat_head.mp4" type="video/mp4">
+
+              <div class="column pb-0 mb-0 is-full-width">
+                <div class="video-container">
+                  <video id="teaser" autoplay muted loop playsinline height="100%">
+                    <source src="static/single_full/2ca52d750d95471a953fb2c9eb577da6_final.mp4" type="video/mp4">
                   </video>
                 </div>
-    
-                <div class="column pb-0 mb-0 is-half">
-                  <video id="teaser" autoplay muted loop playsinline height="100%" >
-                    <source src="static/videos/refine_head.mp4" type="video/mp4">
-                  </video>
-              </div>
-    
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_duola.mp4" type="video/mp4">
-                </video>
               </div>
   
-                <div class="column pb-0 mb-0 is-half">
-                  <video id="teaser" autoplay muted loop playsinline height="100%" >
-                    <source src="static/videos/refine_kunkun.mp4" type="video/mp4">
+              <div class="column pb-0 mb-0 is-full-width">
+                <div class="video-container">
+                  <video id="teaser" autoplay muted loop playsinline height="100%">
+                    <source src="static/single_full/2cd51b1262d14a80b7320df1f740687a_final.mp4" type="video/mp4">
                   </video>
                 </div>
-    
-                <div class="column pb-0 mb-0 is-half">
-                  <video id="teaser" autoplay muted loop playsinline height="100%" >
-                    <source src="static/videos/refine_flower.mp4" type="video/mp4">
-                  </video>
               </div>
-    
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_light1_rgba.mp4" type="video/mp4">
-                </video>
-              </div>
-         
-              
-                <div class="column pb-0 mb-0 is-half">
-                  <video id="teaser" autoplay muted loop playsinline height="100%" >
-                    <source src="static/videos/refine_pumpkin.mp4" type="video/mp4">
+  
+              <div class="column pb-0 mb-0 is-full-width">
+                <div class="video-container">
+                  <video id="teaser" autoplay muted loop playsinline height="100%">
+                    <source src="static/single_full/8dbd18bc6c144d04ae89190f1c857c81_final.mp4" type="video/mp4">
                   </video>
                 </div>
-    
-                <div class="column pb-0 mb-0 is-half">
-                  <video id="teaser" autoplay muted loop playsinline height="100%" >
-                    <source src="static/videos/refine_skull.mp4" type="video/mp4">
+              </div>
+  
+              <div class="column pb-0 mb-0 is-full-width">
+                <div class="video-container">
+                  <video id="teaser" autoplay muted loop playsinline height="100%">
+                    <source src="static/single_full/10e836a1ef464011810be12f9c94324b_final.mp4" type="video/mp4">
                   </video>
+                </div>
               </div>
-    
-              <div class="column pb-0 mb-0 is-half">
-                <video id="teaser" autoplay muted loop playsinline height="100%" >
-                  <source src="static/videos/refine_poro.mp4" type="video/mp4">
-                </video>
+
+              <div class="column pb-0 mb-0 is-full-width">
+                <div class="video-container">
+                  <video id="teaser" autoplay muted loop playsinline height="100%">
+                    <source src="static/single_gallery.mp4" type="video/mp4">
+                  </video>
+                </div>
               </div>
-        
 
-
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_monkey.mp4" type="video/mp4">
-              </video>
-            </div>
-
-            <div class="column pb-0 mb-0 is-half">
-              <video id="teaser" autoplay muted loop playsinline height="100%" >
-                <source src="static/videos/refine_owl.mp4" type="video/mp4">
-              </video>
-          </div>
-
-          <div class="column pb-0 mb-0 is-half">
-            <video id="teaser" autoplay muted loop playsinline height="100%" >
-              <source src="static/videos/refine_k3.mp4" type="video/mp4">
-            </video>
-          </div>
-      
-            
-          </div>
-        </div>
         </section>
 
+      <section class="section">
+          <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+              <div class="column is-full-width">
+                <div class="column">
+                  <h2 class="title is-5">Convergence Speed
+                  </h2>
+                </div>
+          
+          <div class="container is-max-desktop">
+            <!-- Teaser video. -->
+            <div class="columns is-centered has-text-centered">
+              <div class="column is-full-width">
+                <div class="column">
+                  <img src="static/images/convergence.jpg" alt="teaser" style="width:100%">
+                  <!-- <div style="display: flex; align-items: center; justify-content: center; gap: 180px;">
+                    <p>Input</p>
+                    <p>Generated multiview image and normal maps</p>
+                    <p>Mesh</p>
+                  </div> -->
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <div class="container is-max-desktop">
+            <!-- Teaser video. -->
+            <div class="columns is-centered has-text-centered">
+              <div class="column is-full-width">
+                <div class="column">
+                  <img src="static/images/psnr_curve.png" alt="teaser" style="width:100%">
+                  <!-- <div style="display: flex; align-items: center; justify-content: center; gap: 180px;">
+                    <p>Input</p>
+                    <p>Generated multiview image and normal maps</p>
+                    <p>Mesh</p>
+                  </div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="container is-max-desktop">
+            <!-- Abstract. -->
+            <div class="columns is-centered has-text-centered">
+              <div class="column is-four-fifths">
+                <div class="content has-text-justified">
+                  <p>
+                    Visualization of intermediate results during training process. Compared with existing LRM-based approaches, like Instant3D, our proposed GCA and GaPE remarkably reduce the convergence time and improve the reconstruction quality by a large margin.
+                  </p><br>
+                </div>
+              </div>
+            </div>
+          </div>
+                
+  
+          </section>
+
+          <section class="section">
+            <div class="container is-max-desktop">
+              <div class="columns is-centered has-text-centered">
+                <div class="column is-full-width">
+                  <div class="column">
+                    <h2 class="title is-5">Hyper-parameters
+                    </h2>
+                  </div>
+            
+                <div class="container is-max-desktop">
+                  <!-- Teaser video. -->
+                  <div class="columns is-centered has-text-centered">
+                    <div class="column is-full-width">
+                      <div class="column">
+                        <img src="static/images/hyperparams.jpg" alt="teaser" style="width:100%">
+                        <!-- <div style="display: flex; align-items: center; justify-content: center; gap: 180px;">
+                          <p>Input</p>
+                          <p>Generated multiview image and normal maps</p>
+                          <p>Mesh</p>
+                        </div> -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+  
+            </section>
 
 
 
