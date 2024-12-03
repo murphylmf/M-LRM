@@ -1,0 +1,80 @@
+seed: 42
+
+system_cls: lrm.system.MLRM_system
+system:
+  weights: ckpts/release_full_data.ckpt
+
+  apply_cost_volume: true
+  apply_sparse_attention: true
+  use_attn_mask: false
+
+  export_mesh: true
+  threshold: 25.0
+
+  image_tokenizer_cls: lrm.models.tokenizers.image.DINOV2SingleImageTokenizer
+  image_tokenizer:
+    pretrained_model_name_or_path: facebook/dinov2-base
+    modulation: true
+    modulation_zero_init: true
+    modulation_single_layer: true
+    modulation_cond_dim: 768
+    enable_gradient_checkpointing: true
+
+  tokenizer_cls: lrm.models.tokenizers.triplane.TriplaneLearnablePositionalEmbedding
+  tokenizer:
+    plane_size: 64
+    num_channels: 768
+
+  backbone_cls: lrm.models.transformers.transformers.Transformer1D
+  backbone:
+    in_channels: 768
+    num_attention_heads: 8
+    attention_head_dim: 64
+    num_attention_heads_cross: 8
+    attention_head_dim_cross: 64
+    num_layers: 12
+    cross_attention_dim: 768
+    gradient_checkpointing: true
+    apply_sparse_attention: true
+    interleave: true
+
+  post_processor_cls: lrm.models.network_utils.TriplaneUpsampleNetwork
+  post_processor:
+    in_channels: 768
+    out_channels: 40
+
+  decoder_cls: lrm.models.network_utils.Decoder
+  decoder:
+    hidden_dim: 64
+    activation: silu
+    share_mlp:
+      dim_in: 120
+      dim_out: 64
+      n_neurons: 64
+      n_hidden_layers: 4
+      activation: silu
+
+  renderer_cls: lrm.models.renderer.TriplaneNeRFRenderer
+  renderer:
+    radius: 0.5
+    feature_reduction: concat
+    density_bias: -1.0
+    num_samples_per_ray: 192
+
+  camera_mlp_cls: lrm.models.network_utils.MLP
+  camera_mlp:
+    dim_in: 16
+    dim_out: 768
+    n_neurons: 768
+    n_hidden_layers: 1
+    activation: silu
+
+  cost_volumer_cls: lrm.models.volumers.volumenet.SpatialVolumeNet
+  cost_volumer:
+    view_dim: 768
+    view_num: 6
+    input_image_size: 504
+    spatial_volume_size: 64
+    spatial_volume_length: 0.5
+    triplane_dim: 768
+    construct_cost_volume: true

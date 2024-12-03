@@ -1,0 +1,17 @@
+OmegaConf
+einops
+Pillow
+opencv-python
+transformers==4.37.2
+diffusers==0.26.0
+huggingface-hub==0.25.1
+rembg[gpu]
+lpips
+tqdm
+jaxtyping
+imageio
+imageio-ffmpeg
+trimesh
+kiui
+lightning
+kornia
