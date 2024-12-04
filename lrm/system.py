@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import torch
 import torch.nn.functional as F
+import pymeshlab as ml
 import trimesh
 from einops import rearrange
 from functools import partial
@@ -142,10 +143,10 @@ class MLRM_system(BaseModule):
         triplanes = self.post_processor(self.tokenizer.detokenize(tokens))
         return triplanes
     
-    def predict_single(self, batch):
+    def predict_single(self, batch, refine_mesh=False):
         triplanes = self(batch)
         comp_rgb = self.renderer(self.decoder, triplanes, batch["rays_o"], batch["rays_d"])
-        meshes = self.extract_mesh(triplanes, True, 320, self.cfg.threshold)
+        meshes = self.extract_mesh(triplanes, True, 320, self.cfg.threshold, refine_mesh)
         return comp_rgb, meshes[0]
 
     def set_marching_cubes_resolution(self, resolution: int):
@@ -156,7 +157,7 @@ class MLRM_system(BaseModule):
             return
         self.isosurface_helper = MarchingCubeHelper(resolution)
 
-    def extract_mesh(self, triplanes, has_vertex_color, resolution: int = 256, threshold: float = 25.0):
+    def extract_mesh(self, triplanes, has_vertex_color, resolution: int = 256, threshold: float = 25.0, refine_mesh=False):
         self.set_marching_cubes_resolution(resolution)
         meshes = []
         for triplane in triplanes:
@@ -184,10 +185,19 @@ class MLRM_system(BaseModule):
                         v_pos,
                     )["features"]
                     color = torch.sigmoid(color)
+
             mesh = trimesh.Trimesh(
                 vertices=v_pos.cpu().numpy(),
                 faces=t_pos_idx.cpu().numpy(),
             )
+
+            if refine_mesh:
+                pts, _ = trimesh.sample.sample_surface(mesh, 20000)
+
+                mesh = ml.MeshSet()
+                mesh.add_mesh(ml.Mesh(vertex_matrix=pts))
+                mesh.apply_filter('compute_normal_for_point_clouds', k=10, smoothiter=3)
+                mesh.apply_filter('generate_surface_reconstruction_screened_poisson', depth=8)
 
             meshes.append(mesh)
         return meshes

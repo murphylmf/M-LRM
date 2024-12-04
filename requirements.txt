@@ -15,3 +15,5 @@ trimesh
 kiui
 lightning
 kornia
+pymeshlab
+onnxruntime

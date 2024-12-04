@@ -22,12 +22,15 @@ from einops import rearrange
 
 def predict(system, batch, args, extras) -> None:
     with torch.no_grad():
-        pred_rgbs, mesh = system.predict_single(batch)
+        pred_rgbs, mesh = system.predict_single(batch, refine_mesh=args.refine_mesh)
     pred_rgbs = pred_rgbs.squeeze(0)
     
     # save video
     imageio.mimwrite(f"{args.output}/{batch['scene_name']}.mp4", (pred_rgbs * 255).cpu().numpy().astype(np.uint8), fps=30)
-    mesh.export(f"{args.output}/{batch['scene_name']}_mesh.obj")
+    if args.refine_mesh:
+        mesh.save_current_mesh(f"{args.output}/{batch['scene_name']}_mesh.obj")
+    else:
+        mesh.export(f"{args.output}/{batch['scene_name']}_mesh.obj")
 
 def get_rays(fovy, c2w, height, width):
     focal_length = 0.5 * height / math.tan(0.5 * fovy)
@@ -124,6 +127,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_views" , type=int, default=6)
     parser.add_argument("--output", type=str, default="test_output")
     parser.add_argument("--resize_scale", type=float, default=0.85)
+    parser.add_argument("--refine_mesh", action="store_true")
 
     args, extras = parser.parse_known_args()
 
