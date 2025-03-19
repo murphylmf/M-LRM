@@ -1,2 +1,4 @@
 ckpts/*.ckpt
 __pycache__/
+outputs/
+wandb/

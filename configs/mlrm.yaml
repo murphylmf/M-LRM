@@ -2,6 +2,7 @@ seed: 42
 
 system_cls: lrm.system.MLRM_system
 system:
+  save_dir: outputs/mlrm
   weights: ckpts/release_full_data.ckpt
 
   apply_cost_volume: true

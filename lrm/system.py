@@ -7,19 +7,33 @@ import torch
 import torch.nn.functional as F
 import pymeshlab as ml
 import trimesh
+import lpips
+import imageio
 from einops import rearrange
 from functools import partial
+from pytorch_lightning import LightningModule
+from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 from lrm.utils.ops import scale_tensor, chunk_batch
-from lrm.utils.base import BaseModule, find_class
+from lrm.utils.base import BaseModule, find_class, parse_structured
+from lrm.utils.misc import get_device
 from lrm.utils.typing import *
 from lrm.models.volumers.volumenet import SpatialVolumeNet, extract_feat_tokens_by_triplaneIndex, get_mask_from_index
 from lrm.models.isosurface import MarchingCubeHelper
 
 
-class MLRM_system(BaseModule):
+lpips_loss = lpips.LPIPS(net="vgg").to(get_device())
+lpips_loss.eval()
+for param in lpips_loss.parameters():
+    param.requires_grad = False
+
+
+class MLRM_system(LightningModule):
     @dataclass
-    class Config(BaseModule.Config):
+    class Config():
+        save_dir: str = ""
+        weights: Optional[str] = None
+
         camera_mlp_cls: str = ""
         camera_mlp: dict = field(default_factory=dict)
 
@@ -55,14 +69,25 @@ class MLRM_system(BaseModule):
         apply_sparse_attention: bool = False
         use_attn_mask: bool = False
 
+        lambda_mse: float = 1.0
+        lambda_lpips: float = 1.0
+        lambda_mask: float = 0.1
+
     cfg: Config
 
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = parse_structured(self.Config, cfg)
+
+        self.configure()
+
     def from_pretrained(self):
+        if self.cfg.weights is None:
+            return
         state_dict = torch.load(self.cfg.weights, map_location="cpu")
         self.load_state_dict(state_dict)
 
     def configure(self):
-        super().configure()
         self.camera_mlp = find_class(self.cfg.camera_mlp_cls)(self.cfg.camera_mlp)
         self.image_tokenizer = find_class(self.cfg.image_tokenizer_cls)(
             self.cfg.image_tokenizer
@@ -145,7 +170,7 @@ class MLRM_system(BaseModule):
     
     def predict_single(self, batch, refine_mesh=False):
         triplanes = self(batch)
-        comp_rgb = self.renderer(self.decoder, triplanes, batch["rays_o"], batch["rays_d"])
+        comp_rgb, _ = self.renderer(self.decoder, triplanes, batch["rays_o"], batch["rays_d"])
         meshes = self.extract_mesh(triplanes, True, 320, self.cfg.threshold, refine_mesh)
         return comp_rgb, meshes[0]
 
@@ -201,3 +226,165 @@ class MLRM_system(BaseModule):
 
             meshes.append(mesh)
         return meshes
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(
+            self.parameters(),
+            lr=4e-4,
+            betas=(0.9, 0.95),
+            weight_decay=0.05
+        )
+
+        linear_scheduler = LinearLR(
+            optimizer,
+            start_factor=1e-6,
+            end_factor=1.0,
+            total_iters=1
+        )
+
+        cosine_scheduler = CosineAnnealingLR(
+            optimizer,
+            T_max=7000,
+            eta_min=0.0
+        )
+
+        sequential_scheduler = SequentialLR(
+            optimizer,
+            schedulers=[linear_scheduler, cosine_scheduler],
+            milestones=[1]
+        )
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": sequential_scheduler,
+                "interval": "step",
+            }
+        }
+
+    def training_step(self, batch, batch_idx):
+        triplanes = self(batch)
+        comp_rgb, mask = self.renderer(self.decoder, triplanes, batch["rays_o"], batch["rays_d"])
+        gt_rgb = batch["rgb"]
+        gt_mask = batch["mask"]
+
+        loss_mse = F.mse_loss(comp_rgb, gt_rgb) * self.cfg.lambda_mse
+        loss_lpips = lpips_loss(
+            scale_tensor(rearrange(comp_rgb, "B N H W C -> (B N) C H W"), (0, 1), (-1, 1)),
+            scale_tensor(rearrange(gt_rgb, "B N H W C -> (B N) C H W"), (0, 1), (-1, 1))
+        ) * self.cfg.lambda_lpips
+
+        EPS = 1e-4
+
+        flatten_mask = mask.view(-1).clamp(min=EPS, max=1-EPS)
+        flatten_gt = gt_mask.view(-1)
+
+        log_term = flatten_gt * torch.log(flatten_mask)
+        neg_log_term = (1 - flatten_gt) * torch.log(1 - flatten_mask)
+
+        loss_mask = -(log_term + neg_log_term).mean() * self.cfg.lambda_mask
+
+        loss_mse = loss_mse.mean()
+        loss_lpips = loss_lpips.mean()
+        loss_mask = loss_mask.mean()
+
+        loss = loss_mse + loss_lpips + loss_mask
+        self.log("train/loss", loss.mean())
+        self.log("train/loss_mse", loss_mse.mean())
+        self.log("train/loss_lpips", loss_lpips.mean())
+        self.log("train/loss_mask", loss_mask.mean())
+        
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        triplanes = self(batch)
+        comp_rgb, mask = self.renderer(self.decoder, triplanes, batch["rays_o"], batch["rays_d"])
+        gt_rgb = batch["rgb"]
+
+        batch_size = comp_rgb.shape[0]
+
+        num_views = comp_rgb.shape[1]
+
+        for b in range(batch_size):
+            for v in range(num_views):
+                comp_rgb_single = comp_rgb[b, v]
+                gt_rgb_single = gt_rgb[b, v]
+
+                # save images
+                comp_rgb_single = comp_rgb_single.cpu().numpy()
+                gt_rgb_single = gt_rgb_single.cpu().numpy()
+
+                comp_rgb_single = np.clip(comp_rgb_single, 0, 1)
+                gt_rgb_single = np.clip(gt_rgb_single, 0, 1)
+
+                comp_rgb_single = (comp_rgb_single * 255).astype(np.uint8)
+                gt_rgb_single = (gt_rgb_single * 255).astype(np.uint8)
+
+                imageio.imwrite(
+                    os.path.join(
+                        self.cfg.save_dir,
+                        f"{batch['scene_id'][b]}_{v}_step{self.global_step}.png",
+                    ),
+                    comp_rgb_single,
+                )
+
+                imageio.imwrite(
+                    os.path.join(
+                        self.cfg.save_dir,
+                        f"{batch['scene_id'][b]}_{v}_gt.png",
+                    ),
+                    gt_rgb_single,
+                )
+
+        comp_rgb = rearrange(comp_rgb, "B N H W C -> (B N) C H W")
+        gt_rgb = rearrange(gt_rgb, "B N H W C -> (B N) C H W")
+
+        psnr = -10 * torch.log10(F.mse_loss(comp_rgb, gt_rgb))
+        self.log("val/psnr", psnr)
+        lpips = lpips_loss(
+            scale_tensor(comp_rgb, (0, 1), (-1, 1)),
+            scale_tensor(gt_rgb, (0, 1), (-1, 1))
+        ).mean()
+        self.log("val/lpips", lpips)
+    
+    def test_step(self, batch, batch_idx):
+        if not os.path.exists(self.cfg.save_dir):
+            os.makedirs(self.cfg.save_dir)
+
+        triplanes = self(batch)
+        comp_rgb, mask = self.renderer(self.decoder, triplanes, batch["rays_o"], batch["rays_d"])
+        gt_rgb = batch["rgb"]
+
+        batch_size = comp_rgb.shape[0]
+        num_views = comp_rgb.shape[1]
+
+        for b in range(batch_size):
+            for v in range(num_views):
+                comp_rgb_single = comp_rgb[b, v]
+                gt_rgb_single = gt_rgb[b, v]
+
+                # save images
+                comp_rgb_single = comp_rgb_single.cpu().numpy()
+                gt_rgb_single = gt_rgb_single.cpu().numpy()
+
+                comp_rgb_single = np.clip(comp_rgb_single, 0, 1)
+                gt_rgb_single = np.clip(gt_rgb_single, 0, 1)
+
+                comp_rgb_single = (comp_rgb_single * 255).astype(np.uint8)
+                gt_rgb_single = (gt_rgb_single * 255).astype(np.uint8)
+
+                imageio.imwrite(
+                    os.path.join(
+                        self.cfg.save_dir,
+                        f"test_{batch['scene_id'][b]}_{v}_step{self.global_step}.png",
+                    ),
+                    comp_rgb_single,
+                )
+
+                imageio.imwrite(
+                    os.path.join(
+                        self.cfg.save_dir,
+                        f"test_{batch['scene_id'][b]}_{v}_gt.png",
+                    ),
+                    gt_rgb_single,
+                )

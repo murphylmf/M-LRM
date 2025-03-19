@@ -398,6 +398,49 @@ def convert_depth_to_distance(depths, intrinsics):
 
     return distances
 
+def c2w_to_spherical(camera_matrix):
+    pos = camera_matrix[:3, 3]
+    dx, dy, dz = pos[0].item(), pos[1].item(), pos[2].item()
+    
+    radius = torch.linalg.norm(pos).item()
+    
+    xy_projection = math.hypot(dx, dz)
+    if radius < 1e-7:
+        polar_angle = 0.0
+    else:
+        polar_angle = math.atan2(dy, xy_projection)
+    
+    if xy_projection < 1e-6:
+        azimuth = 0.0
+    else:
+        azimuth = math.atan2(dx, dz) % (2 * math.pi)
+    
+    return polar_angle, azimuth, radius
+
+def spherical_to_c2w(polar, azimuth, radius):
+    vertical = radius * math.sin(polar)
+    horizontal = radius * math.cos(polar)
+    px = horizontal * math.cos(azimuth)
+    pz = horizontal * math.sin(azimuth)
+    camera_pos = torch.tensor([px, vertical, pz], dtype=torch.float32)
+    
+    view_dir = -camera_pos
+    view_dir_normalized = view_dir / torch.linalg.norm(view_dir)
+    
+    global_up = torch.tensor([0.0, 1.0, 0.0], dtype=torch.float32)
+    right_axis = torch.linalg.cross(view_dir_normalized, global_up)
+    right_axis = right_axis / torch.linalg.norm(right_axis)
+    
+    true_up = torch.linalg.cross(right_axis, view_dir_normalized)
+    true_up = true_up / torch.linalg.norm(true_up)
+    
+    orientation = torch.column_stack([right_axis, true_up, -view_dir_normalized])
+    
+    transform = torch.eye(4, dtype=torch.float32)
+    transform[:3, :3] = orientation
+    transform[:3, 3] = camera_pos
+    
+    return transform
 
 def rays_intersect_bbox(
     rays_o: torch.Tensor,

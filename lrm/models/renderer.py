@@ -48,8 +48,6 @@ class TriplaneNeRFRenderer(BaseModule):
         input_shape = positions.shape[:-1]
         positions = positions.view(-1, 3)
 
-        # positions in (-radius, radius)
-        # normalized to (-1, 1) for grid sample
         positions = scale_tensor(
             positions, (-self.cfg.radius, self.cfg.radius), (-1, 1)
         )
@@ -151,27 +149,7 @@ class TriplaneNeRFRenderer(BaseModule):
         comp_rgb += 1 - opacity[..., None]
         comp_rgb = comp_rgb.view(*rays_shape, 3)
 
-        return comp_rgb
-
-    # def forward(
-    #     self,
-    #     decoder: torch.nn.Module,
-    #     triplane: torch.Tensor,
-    #     rays_o: torch.Tensor,
-    #     rays_d: torch.Tensor,
-    # ) -> Dict[str, torch.Tensor]:
-    #     if triplane.ndim == 4:
-    #         comp_rgb = self._forward(decoder, triplane, rays_o, rays_d)
-    #     else:
-    #         comp_rgb = torch.stack(
-    #             [
-    #                 self._forward(decoder, triplane[i], rays_o[i], rays_d[i])
-    #                 for i in range(triplane.shape[0])
-    #             ],
-    #             dim=0,
-    #         )
-
-    #     return comp_rgb
+        return comp_rgb, opacity
 
     def forward(
         self,
@@ -183,20 +161,27 @@ class TriplaneNeRFRenderer(BaseModule):
     ) -> Dict[str, torch.Tensor]:
         batch_size = triplanes.shape[0]
         num_views = rays_o.shape[1]
-        out_list = []
+        batch_rgbs = []
+        batch_opacities = []
         for b in range(batch_size):
-            all_comp_rgbs = []
+            comp_rgbs = []
+            opacities = []
             for c in range(0, num_views, chunk_size):
-                out = self._forward(
+                out, opacity = self._forward(
                     decoder,
                     triplanes[b],
                     rays_o[b, c : c + chunk_size],
                     rays_d[b, c : c + chunk_size]
                 )
-                all_comp_rgbs.append(out)
-                
-        out = torch.cat(all_comp_rgbs, dim=0)
-        return out
+                comp_rgbs.append(out)
+                opacities.append(opacity)
+
+            comp_rgbs = torch.cat(comp_rgbs, dim=0)
+            opacities = torch.cat(opacities, dim=0)
+            batch_rgbs.append(comp_rgbs)
+            batch_opacities.append(opacities)
+
+        return torch.stack(batch_rgbs, dim=0), torch.stack(batch_opacities, dim=0)
 
     def train(self, mode=True):
         self.randomized = mode and self.cfg.randomized

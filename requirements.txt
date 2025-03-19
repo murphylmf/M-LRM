@@ -17,3 +17,4 @@ lightning
 kornia
 pymeshlab
 onnxruntime
+wandb

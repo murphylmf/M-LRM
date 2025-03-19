@@ -48,6 +48,12 @@ We provide a script to run the inference with single view input. The script will
 python infer.py --config configs/mlrm.yaml --refined_mv_model --input examples/bird.png
 ```
 
+## Training
+```sh
+python train.py --config configs/train_base.yaml
+```
+Please refer to **data_preparation/** for the data preparation guidance.
+
 ## Acknowledgements
 - This project is supported by HKUST and HKGAI.
 - We would like to thank [TripoSR](https://github.com/VAST-AI-Research/TripoSR) and [TriplaneGaussian](https://github.com/VAST-AI-Research/TriplaneGaussian) for their great works. Our code is based on their implementations.
